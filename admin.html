@@ -17,6 +17,33 @@
 
 <body>
 
+  <!-- ADMIN AUTHENTICATION LOCK OVERLAY -->
+  <div class="admin-auth-overlay" id="adminAuthOverlay">
+    <div class="admin-auth-card">
+      <div class="auth-header">
+        <div class="auth-logo-box">
+          <img src="Asset/c7faccf5-fc56-487e-9e37-dab67f67e0f9.webp" alt="WebCare Logo" class="auth-brand-logo">
+        </div>
+        <h2 class="auth-title">Admin Operations</h2>
+        <p class="auth-subtitle">Login dengan kredensial administrator</p>
+      </div>
+      <form id="adminLoginForm" class="auth-form" autocomplete="on">
+        <div class="auth-field">
+          <label class="auth-label" for="adminUsernameInput">Username</label>
+          <input type="text" id="adminUsernameInput" class="auth-input" placeholder="Username (webcareidn)" autocomplete="username" required>
+        </div>
+        <div class="auth-field">
+          <label class="auth-label" for="adminPasswordInput">Password</label>
+          <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Password (webcareidn123)" autocomplete="current-password" required>
+        </div>
+        <div id="authErrorMsg" class="auth-error-msg">Username atau password salah. Silakan coba lagi.</div>
+        <button type="submit" class="auth-submit-btn" id="adminLoginBtn">
+          <span>Masuk ke Dashboard</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- TOP APP BAR -->
   <header class="admin-topbar">
     <div class="topbar-inner">

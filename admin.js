@@ -38,6 +38,7 @@ function getTicketDateStr(ticket) {
 }
 
 function initAdminDashboard() {
+  initAdminAuth();
   loadTicketsFromStorage();
   updateGreetingHeader();
   renderCalendarStrip();
@@ -916,7 +917,74 @@ function initLogout() {
   const logoutBtn = document.getElementById('adminLogoutBtn');
   if (!logoutBtn) return;
   logoutBtn.addEventListener('click', () => {
-    window.location.href = 'index.html';
+    if (confirm('Apakah Anda ingin logout dari Admin Portal?')) {
+      sessionStorage.removeItem('webcare_admin_auth');
+      const overlay = document.getElementById('adminAuthOverlay');
+      if (overlay) {
+        overlay.classList.remove('hidden');
+        const userInput = document.getElementById('adminUsernameInput');
+        if (userInput) userInput.focus();
+      }
+      showToast('Anda telah logout dari Admin Portal.');
+    }
+  });
+}
+
+/* ==========================================================================
+   ADMIN AUTHENTICATION GATE (Username: webcareidn | Password: webcareidn123)
+   ========================================================================== */
+const ADMIN_VALID_USER = 'webcareidn';
+const ADMIN_VALID_PASS = 'webcareidn123';
+
+function initAdminAuth() {
+  const overlay = document.getElementById('adminAuthOverlay');
+  const form = document.getElementById('adminLoginForm');
+  const userInput = document.getElementById('adminUsernameInput');
+  const passInput = document.getElementById('adminPasswordInput');
+  const errorMsg = document.getElementById('authErrorMsg');
+
+  if (!overlay || !form) return;
+
+  // Check existing session
+  const isAuthenticated = sessionStorage.getItem('webcare_admin_auth') === 'true';
+
+  if (isAuthenticated) {
+    overlay.classList.add('hidden');
+  } else {
+    overlay.classList.remove('hidden');
+    if (userInput) {
+      setTimeout(() => userInput.focus(), 150);
+    }
+  }
+
+  // Clear error on typing
+  if (userInput && passInput) {
+    [userInput, passInput].forEach(inp => {
+      inp.addEventListener('input', () => {
+        if (errorMsg) errorMsg.classList.remove('show');
+      });
+    });
+  }
+
+  // Handle Login Form Submit
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const u = (userInput ? userInput.value.trim() : '');
+    const p = (passInput ? passInput.value.trim() : '');
+
+    if (u === ADMIN_VALID_USER && p === ADMIN_VALID_PASS) {
+      sessionStorage.setItem('webcare_admin_auth', 'true');
+      overlay.classList.add('hidden');
+      if (errorMsg) errorMsg.classList.remove('show');
+      form.reset();
+      showToast('Selamat datang, Administrator WebCare!');
+    } else {
+      if (errorMsg) errorMsg.classList.add('show');
+      if (passInput) {
+        passInput.value = '';
+        passInput.focus();
+      }
+    }
   });
 }
 
