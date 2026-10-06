@@ -918,7 +918,7 @@ function initLogout() {
   if (!logoutBtn) return;
   logoutBtn.addEventListener('click', () => {
     if (confirm('Apakah Anda ingin logout dari Admin Portal?')) {
-      sessionStorage.removeItem('webcare_admin_auth');
+      deleteCookie(ADMIN_COOKIE_NAME);
       const overlay = document.getElementById('adminAuthOverlay');
       if (overlay) {
         overlay.classList.remove('hidden');
@@ -935,6 +935,23 @@ function initLogout() {
    ========================================================================== */
 const ADMIN_VALID_USER = 'webcareidn';
 const ADMIN_VALID_PASS = 'webcareidn123';
+const ADMIN_COOKIE_NAME = 'webcare_admin_auth';
+const ADMIN_COOKIE_DAYS = 30;
+
+function setCookie(name, value, days) {
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+}
+
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+}
+
+function deleteCookie(name) {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Strict`;
+}
 
 function initAdminAuth() {
   const overlay = document.getElementById('adminAuthOverlay');
@@ -945,8 +962,8 @@ function initAdminAuth() {
 
   if (!overlay || !form) return;
 
-  // Check existing session
-  const isAuthenticated = sessionStorage.getItem('webcare_admin_auth') === 'true';
+  // Check existing session via cookie (30-day)
+  const isAuthenticated = getCookie(ADMIN_COOKIE_NAME) === 'true';
 
   if (isAuthenticated) {
     overlay.classList.add('hidden');
@@ -973,11 +990,11 @@ function initAdminAuth() {
     const p = (passInput ? passInput.value.trim() : '');
 
     if (u === ADMIN_VALID_USER && p === ADMIN_VALID_PASS) {
-      sessionStorage.setItem('webcare_admin_auth', 'true');
+      setCookie(ADMIN_COOKIE_NAME, 'true', ADMIN_COOKIE_DAYS);
       overlay.classList.add('hidden');
       if (errorMsg) errorMsg.classList.remove('show');
       form.reset();
-      showToast('Selamat datang, Administrator WebCare!');
+      showToast('Selamat datang, Administrator WebCare! (Login tersimpan 30 hari)');
     } else {
       if (errorMsg) errorMsg.classList.add('show');
       if (passInput) {
