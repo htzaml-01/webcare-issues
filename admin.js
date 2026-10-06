@@ -4,7 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let tickets = [];
-let currentFilter = 'active';
+let currentFilter = 'all';
+let currentPage = 1;
+const ITEMS_PER_PAGE = 5;
 let currentSearch = '';
 let selectedDate = getLocalDateStr(new Date());
 let activeTicketForModal = null;
@@ -271,30 +273,16 @@ function updateGreetingHeader() {
 }
 
 /* ==========================================================================
-   RENDER ISSUES LIST (FILTERED BY STATUS, SEARCH & SELECTED DATE)
+   GET FILTERED TICKETS (STATUS, SEARCH & CALENDAR DATE)
    ========================================================================== */
-function renderIssuesList() {
-  const container = document.getElementById('issuesListContainer');
-  const countBadge = document.getElementById('totalFilteredCount');
-  const feedTitle = document.getElementById('feedSectionTitle');
-  if (!container) return;
-
-  if (feedTitle) {
-    if (currentFilter === 'history' || currentFilter === 'done') {
-      feedTitle.textContent = 'History (Resolved Issues)';
-    } else if (currentFilter === 'pending') {
-      feedTitle.textContent = 'Pending Issues';
-    } else if (currentFilter === 'working') {
-      feedTitle.textContent = 'On Working Issues';
-    } else {
-      feedTitle.textContent = 'Active Issues';
-    }
-  }
-
-  const filtered = tickets.filter(t => {
+function getFilteredTickets() {
+  return tickets.filter(t => {
     let matchesFilter = false;
-    if (currentFilter === 'active' || currentFilter === 'all') {
-      // Active queue: only pending and working (done issues are moved to History)
+    if (currentFilter === 'all') {
+      // All: show all statuses (pending, working, done)
+      matchesFilter = true;
+    } else if (currentFilter === 'active') {
+      // Active queue: only pending and working
       matchesFilter = (t.status === 'pending' || t.status === 'working');
     } else if (currentFilter === 'history' || currentFilter === 'done') {
       // History queue: only done/resolved issues
@@ -317,6 +305,32 @@ function renderIssuesList() {
 
     return matchesFilter && matchesSearch && matchesDate;
   });
+}
+
+/* ==========================================================================
+   RENDER ISSUES LIST (FILTERED BY STATUS, SEARCH & SELECTED DATE)
+   ========================================================================== */
+function renderIssuesList() {
+  const container = document.getElementById('issuesListContainer');
+  const countBadge = document.getElementById('totalFilteredCount');
+  const feedTitle = document.getElementById('feedSectionTitle');
+  if (!container) return;
+
+  if (feedTitle) {
+    if (currentFilter === 'history' || currentFilter === 'done') {
+      feedTitle.textContent = 'History (Resolved Issues)';
+    } else if (currentFilter === 'pending') {
+      feedTitle.textContent = 'Pending Issues';
+    } else if (currentFilter === 'working') {
+      feedTitle.textContent = 'On Working Issues';
+    } else if (currentFilter === 'all') {
+      feedTitle.textContent = 'All Issues';
+    } else {
+      feedTitle.textContent = 'Active Issues';
+    }
+  }
+
+  const filtered = getFilteredTickets();
 
   if (countBadge) {
     countBadge.textContent = filtered.length;
@@ -347,6 +361,9 @@ function renderIssuesList() {
     } else if (currentFilter === 'working') {
       emptyTitle = `Tidak ada issue On Working untuk ${dateLabel}`;
       emptyDesc = 'Issue yang sedang dalam proses perbaikan akan muncul di sini.';
+    } else if (currentFilter === 'all') {
+      emptyTitle = `Tidak ada issue untuk ${dateLabel}`;
+      emptyDesc = 'Belum ada tiket issue (Pending, On Working, atau Done) pada tanggal ini.';
     } else {
       emptyTitle = `Antrean issue aktif kosong untuk ${dateLabel}`;
       emptyDesc = 'Tidak ada tiket pending atau on working pada tanggal ini. Tiket yang sudah selesai (Done) tersimpan di tab History.';
@@ -365,7 +382,13 @@ function renderIssuesList() {
     return;
   }
 
-  container.innerHTML = filtered.map(ticket => {
+  // Pagination (Max 5 issues per page)
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginated = filtered.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+  container.innerHTML = paginated.map(ticket => {
     const statusClass = `status-${ticket.status}`;
     const statusDot = ticket.status === 'done' 
       ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>'
@@ -441,7 +464,42 @@ function renderIssuesList() {
       </div>
     `;
   }).join('');
+
+  // Render pagination controls (if more than 1 page)
+  if (totalPages > 1) {
+    const paginationHTML = `
+      <div class="pagination-controls" id="paginationControls">
+        <button class="page-btn prev-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} title="Previous Page">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        ${Array.from({length: totalPages}, (_, i) => `
+          <button class="page-btn num-btn ${i + 1 === currentPage ? 'active' : ''}" onclick="goToPage(${i + 1})">${i + 1}</button>
+        `).join('')}
+        <button class="page-btn next-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} title="Next Page">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+        <span class="page-info">${startIdx + 1}–${Math.min(startIdx + ITEMS_PER_PAGE, filtered.length)} dari ${filtered.length}</span>
+      </div>
+    `;
+    container.insertAdjacentHTML('beforeend', paginationHTML);
+  }
 }
+
+/* ==========================================================================
+   PAGINATION NAVIGATION
+   ========================================================================== */
+window.goToPage = function(page) {
+  const filtered = getFilteredTickets();
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderIssuesList();
+  
+  const container = document.getElementById('issuesListContainer');
+  if (container) {
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+};
 
 /* ==========================================================================
    UPDATE TICKET STATUS
@@ -602,6 +660,7 @@ function initFilterPills() {
       buttons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentFilter = btn.getAttribute('data-filter');
+      currentPage = 1; // reset to first page on filter change
       renderIssuesList();
     });
   });
@@ -613,6 +672,7 @@ function initSearch() {
 
   searchInput.addEventListener('input', (e) => {
     currentSearch = e.target.value;
+    currentPage = 1; // reset to first page on search
     renderIssuesList();
   });
 }
@@ -668,6 +728,7 @@ function renderCalendarStrip() {
     btn.addEventListener('click', () => {
       const targetDate = btn.getAttribute('data-date');
       selectedDate = targetDate;
+      currentPage = 1;
 
       dayButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');

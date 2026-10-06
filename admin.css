@@ -2159,3 +2159,66 @@ body {
   box-shadow: 0 6px 22px rgba(0, 82, 255, 0.5);
   transform: translateY(-1px);
 }
+
+/* ==========================================================================
+   PAGINATION CONTROLS (Max 5 issues per page)
+   ========================================================================== */
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 0 6px;
+  margin-top: 10px;
+  border-top: 1px solid var(--border-light, #e2e8f0);
+}
+
+.page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #eff6ff;
+  border-color: #0052ff;
+  color: #0052ff;
+  transform: translateY(-1px);
+}
+
+.page-btn.active {
+  background: #0052ff;
+  color: #ffffff;
+  border-color: #0052ff;
+  box-shadow: 0 2px 8px rgba(0, 82, 255, 0.28);
+}
+
+.page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.page-btn svg {
+  vertical-align: middle;
+}
+
+.page-info {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #64748b;
+  margin-left: 8px;
+}
+
