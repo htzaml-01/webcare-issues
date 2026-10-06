@@ -8,8 +8,6 @@ let currentFilter = 'all';
 let currentPage = 1;
 const ITEMS_PER_PAGE = 5;
 let currentSearch = '';
-let selectedDate = null; // Default null: show all issues across all days
-let calendarAnchorDate = new Date(); // Anchor for 7-day strip (defaults to today)
 let activeTicketForModal = null;
 let knownTicketIds = new Set();
 let isInitialLoad = true;
@@ -44,8 +42,6 @@ function initAdminDashboard() {
   initAdminAuth();
   loadTicketsFromStorage();
   updateGreetingHeader();
-  renderCalendarStrip();
-  initCalendarPicker();
   initFilterPills();
   initSearch();
   initModalHandlers();
@@ -243,7 +239,6 @@ function initVoiceAlertTest() {
 
 function renderDashboard() {
   updateGreetingHeader();
-  renderCalendarStrip();
   renderIssuesList();
   renderInsightsMetrics();
   updateReminderBanner();
@@ -294,11 +289,7 @@ function getFilteredTickets() {
       (t.website && t.website.toLowerCase().includes(q)) || 
       (t.details && t.details.toLowerCase().includes(q));
 
-    // Date filtering: match ticket createdAt with selectedDate (YYYY-MM-DD)
-    const ticketDateStr = getTicketDateStr(t);
-    const matchesDate = !selectedDate || (ticketDateStr === selectedDate);
-
-    return matchesFilter && matchesSearch && matchesDate;
+    return matchesFilter && matchesSearch;
   });
 }
 
@@ -332,35 +323,22 @@ function renderIssuesList() {
   }
 
   if (filtered.length === 0) {
-    let dateLabel = selectedDate ? 'this selected day' : 'semua riwayat';
-    if (selectedDate) {
-      try {
-        const dParts = selectedDate.split('-');
-        if (dParts.length === 3) {
-          const dObj = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
-          dateLabel = dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-        }
-      } catch(e) {
-        dateLabel = selectedDate;
-      }
-    }
-
-    let emptyTitle = selectedDate ? `No issues found for ${dateLabel}` : 'Tidak ada issue ditemukan';
+    let emptyTitle = 'Tidak ada issue ditemukan';
     let emptyDesc = '';
     if (currentFilter === 'history' || currentFilter === 'done') {
-      emptyTitle = selectedDate ? `Belum ada riwayat selesai untuk ${dateLabel}` : 'Belum ada riwayat issue selesai';
+      emptyTitle = 'Belum ada riwayat issue selesai';
       emptyDesc = 'Issue yang berstatus "Done" akan otomatis tersimpan di tab History ini.';
     } else if (currentFilter === 'pending') {
-      emptyTitle = selectedDate ? `Tidak ada issue Pending untuk ${dateLabel}` : 'Tidak ada issue Pending saat ini';
+      emptyTitle = 'Tidak ada issue Pending saat ini';
       emptyDesc = 'Semua issue baru yang belum ditangani akan muncul di sini.';
     } else if (currentFilter === 'working') {
-      emptyTitle = selectedDate ? `Tidak ada issue On Working untuk ${dateLabel}` : 'Tidak ada issue On Working saat ini';
+      emptyTitle = 'Tidak ada issue On Working saat ini';
       emptyDesc = 'Issue yang sedang dalam proses perbaikan akan muncul di sini.';
     } else if (currentFilter === 'all') {
-      emptyTitle = selectedDate ? `Tidak ada issue untuk ${dateLabel}` : 'Belum ada issue yang dilaporkan';
+      emptyTitle = 'Belum ada issue yang dilaporkan';
       emptyDesc = 'Semua tiket kendala yang dilaporkan oleh klien akan muncul di sini.';
     } else {
-      emptyTitle = selectedDate ? `Antrean issue aktif kosong untuk ${dateLabel}` : 'Antrean issue aktif kosong';
+      emptyTitle = 'Antrean issue aktif kosong';
       emptyDesc = 'Tidak ada tiket pending atau on working saat ini. Tiket yang sudah selesai (Done) tersimpan di tab History.';
     }
 
@@ -670,142 +648,6 @@ function initSearch() {
     currentPage = 1; // reset to first page on search
     renderIssuesList();
   });
-}
-
-/* ==========================================================================
-   DYNAMIC 7-DAY CALENDAR STRIP (Last 7 days ending on today)
-   ========================================================================== */
-function renderCalendarStrip() {
-  const container = document.getElementById('calendarStrip');
-  if (!container) return;
-
-  const anchor = (calendarAnchorDate instanceof Date && !isNaN(calendarAnchorDate.getTime())) 
-    ? calendarAnchorDate 
-    : new Date();
-  const today = new Date();
-  const days = [];
-
-  // Generate 7 days ending with anchor date (e.g. if anchor is date 8: 2, 3, 4, 5, 6, 7, 8)
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(anchor);
-    d.setDate(anchor.getDate() - i);
-    days.push(d);
-  }
-
-  container.innerHTML = days.map(d => {
-    const dateStr = getLocalDateStr(d);
-    const dayShort = d.toLocaleDateString('en-US', { weekday: 'short' });
-    const dayNum = d.getDate();
-    const isSelected = (selectedDate && dateStr === selectedDate);
-    const isToday = (dateStr === getLocalDateStr(today));
-
-    // Check if tickets exist for this date
-    const hasTicketsOnDay = tickets.some(t => getTicketDateStr(t) === dateStr);
-
-    return `
-      <button class="calendar-day-item ${isSelected ? 'active' : ''} ${hasTicketsOnDay ? 'has-tickets' : ''}" 
-              data-date="${dateStr}" 
-              data-day="${dayShort}"
-              type="button"
-              title="${d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}${isToday ? ' (Today)' : ''}">
-        <span class="day-name">${dayShort}</span>
-        <span class="day-number">${dayNum}</span>
-      </button>
-    `;
-  }).join('');
-
-  // Attach click listeners to day items (Supports click to filter and unclick to show all)
-  const dayButtons = container.querySelectorAll('.calendar-day-item');
-  dayButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetDate = btn.getAttribute('data-date');
-
-      // If clicked day is already active, unclick/toggle off to show ALL issues
-      if (selectedDate === targetDate) {
-        selectedDate = null;
-        currentPage = 1;
-        dayButtons.forEach(b => b.classList.remove('active'));
-        renderIssuesList();
-        showToast('Menampilkan semua issues (Semua Hari)');
-        return;
-      }
-
-      // Filter by the clicked day
-      selectedDate = targetDate;
-      currentPage = 1;
-
-      dayButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      renderIssuesList();
-
-      const dParts = targetDate.split('-');
-      if (dParts.length === 3) {
-        const dObj = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
-        const formatted = dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-        showToast(`Filtered queue for ${formatted}`);
-      }
-    });
-  });
-}
-
-/* ==========================================================================
-   CALENDAR DATE PICKER (CUSTOM ANCHOR DATE)
-   ========================================================================== */
-function initCalendarPicker() {
-  const dateInput = document.getElementById('calendarDateInput');
-  const resetBtn = document.getElementById('calendarResetTodayBtn');
-  const pickerLabel = document.getElementById('calendarPickerLabel');
-
-  if (dateInput) {
-    dateInput.addEventListener('change', (e) => {
-      const val = e.target.value; // YYYY-MM-DD
-      if (!val) return;
-
-      const [y, m, d] = val.split('-').map(Number);
-      calendarAnchorDate = new Date(y, m - 1, d);
-      selectedDate = val; // auto-select the chosen date
-      currentPage = 1;
-
-      if (resetBtn) resetBtn.style.display = 'inline-flex';
-      if (pickerLabel) {
-        const dObj = new Date(y, m - 1, d);
-        pickerLabel.textContent = dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      }
-
-      renderCalendarStrip();
-      renderIssuesList();
-      showToast(`Rentang 7 hari diatur berakhiran ${val}`);
-    });
-
-    const parentLabel = dateInput.closest('.calendar-picker-btn');
-    if (parentLabel) {
-      parentLabel.addEventListener('click', (e) => {
-        if (e.target !== dateInput && typeof dateInput.showPicker === 'function') {
-          try {
-            dateInput.showPicker();
-          } catch(err) {
-            // fallback to native click
-          }
-        }
-      });
-    }
-  }
-
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      calendarAnchorDate = new Date();
-      selectedDate = null; // Show all issues
-      currentPage = 1;
-      if (dateInput) dateInput.value = '';
-      if (pickerLabel) pickerLabel.textContent = 'Pilih Tanggal';
-      resetBtn.style.display = 'none';
-
-      renderCalendarStrip();
-      renderIssuesList();
-      showToast('Kalender di-reset ke 7 hari ini & menampilkan semua issues');
-    });
-  }
 }
 
 /* ==========================================================================
