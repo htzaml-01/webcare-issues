@@ -256,14 +256,7 @@ function updateGreetingHeader() {
   const now = new Date();
 
   if (greetingTitle) {
-    const hour = now.getHours();
-    let timeGreeting = 'Morning';
-    if (hour >= 12 && hour < 17) {
-      timeGreeting = 'Afternoon';
-    } else if (hour >= 17) {
-      timeGreeting = 'Evening';
-    }
-    greetingTitle.textContent = `${timeGreeting}, Engineer`;
+    greetingTitle.textContent = "G'Day Webcare Team";
   }
 
   if (dateDisplay) {
