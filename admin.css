@@ -2011,7 +2011,7 @@ body {
 }
 
 /* ==========================================================================
-   ADMIN AUTHENTICATION LOCK OVERLAY
+   ADMIN AUTHENTICATION LOCK OVERLAY (ROTATED BLUE WALLPAPER BACKGROUND)
    ========================================================================== */
 .admin-auth-overlay {
   position: fixed;
@@ -2019,14 +2019,14 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, rgba(0, 31, 102, 0.92) 0%, rgba(0, 82, 255, 0.88) 100%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: linear-gradient(135deg, rgba(0, 24, 85, 0.75) 0%, rgba(0, 60, 200, 0.75) 100%), url('Asset/header-bg-rotated.jpg') center center / cover no-repeat;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   z-index: 9999999;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
   opacity: 1;
   visibility: visible;
   transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -2041,27 +2041,27 @@ body {
 .admin-auth-card {
   background: #ffffff;
   border-radius: 10px;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 30px 80px rgba(0, 20, 80, 0.45), 0 0 1px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
-  padding: 36px 28px;
+  max-width: 480px;
+  padding: 46px 38px;
   text-align: center;
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.9);
 }
 
 .auth-header {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .auth-logo-box {
   display: flex;
   justify-content: center;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .auth-brand-logo {
-  height: 34px;
+  height: 42px;
   width: auto;
   object-fit: contain;
   filter: brightness(0) saturate(100%) invert(20%) sepia(90%) saturate(3000%) hue-rotate(215deg);
@@ -2069,65 +2069,66 @@ body {
 
 .auth-title {
   font-family: var(--font-heading);
-  font-size: 1.35rem;
+  font-size: 1.55rem;
   font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.02em;
-  margin-bottom: 6px;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  margin-bottom: 8px;
 }
 
 .auth-subtitle {
   font-family: var(--font-ui);
-  font-size: 0.84rem;
+  font-size: 0.92rem;
   color: #64748b;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   text-align: left;
 }
 
 .auth-field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .auth-label {
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   font-weight: 600;
   color: #1e293b;
 }
 
 .auth-input {
   width: 100%;
-  padding: 12px 14px;
+  padding: 14px 16px;
   font-family: var(--font-ui);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   border: 1px solid #cbd5e1;
   border-radius: 10px;
   background: #f8fafc;
   outline: none;
+  min-height: 48px;
   transition: var(--smooth);
 }
 
 .auth-input:focus {
   background: #ffffff;
   border-color: #0052ff;
-  box-shadow: 0 0 0 2px rgba(0, 82, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(0, 82, 255, 0.18);
 }
 
 .auth-error-msg {
   display: none;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   color: #ef4444;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 8px;
   text-align: center;
 }
@@ -2142,17 +2143,19 @@ body {
   color: #ffffff;
   border: none;
   border-radius: 10px;
-  padding: 13px 18px;
+  padding: 15px 20px;
   font-family: var(--font-ui);
-  font-size: 0.92rem;
+  font-size: 0.98rem;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 6px;
+  margin-top: 8px;
+  min-height: 50px;
   transition: var(--smooth);
-  box-shadow: 0 4px 14px rgba(0, 82, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 82, 255, 0.35);
 }
 
 .auth-submit-btn:hover {
   background: #0043dc;
-  box-shadow: 0 6px 18px rgba(0, 82, 255, 0.45);
+  box-shadow: 0 6px 22px rgba(0, 82, 255, 0.5);
+  transform: translateY(-1px);
 }
