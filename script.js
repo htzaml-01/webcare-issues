@@ -145,6 +145,7 @@ function initDropzone() {
               size: file.size,
               type: file.type || 'image/jpeg',
               dataUrl: optimizedDataUrl,
+              blob: file,
               isImage: true
             });
           };
@@ -154,6 +155,7 @@ function initDropzone() {
               size: file.size,
               type: file.type,
               dataUrl: rawDataUrl,
+              blob: file,
               isImage: true
             });
           };
@@ -164,6 +166,7 @@ function initDropzone() {
             size: file.size,
             type: file.type,
             dataUrl: rawDataUrl,
+            blob: file,
             isImage: false
           });
         }
@@ -356,21 +359,6 @@ function initFormValidation() {
       timeStr: 'Just now'
     };
 
-    try {
-      const stored = JSON.parse(localStorage.getItem('webcare_tickets') || '[]');
-      stored.unshift(newTicket);
-      localStorage.setItem('webcare_tickets', JSON.stringify(stored));
-      
-      // Broadcast to any open Admin tab immediately
-      if ('BroadcastChannel' in window) {
-        const channel = new BroadcastChannel('webcare_sync_channel');
-        channel.postMessage({ type: 'NEW_TICKET', ticket: newTicket });
-        channel.close();
-      }
-    } catch (err) {
-      console.error('Error saving ticket to storage:', err);
-    }
-
     // Button loading animation state
     const originalBtnHTML = submitBtn.innerHTML;
     submitBtn.innerHTML = `
@@ -378,7 +366,43 @@ function initFormValidation() {
     `;
     submitBtn.disabled = true;
 
-    setTimeout(() => {
+    // Asynchronous Submission Handler (Supabase & LocalStorage)
+    (async () => {
+      // 1. If Supabase is configured, upload attachments and insert ticket
+      if (window.WebCareSupabase && window.WebCareSupabase.isConfigured()) {
+        try {
+          // Attempt storage upload for files with blob
+          for (let i = 0; i < newTicket.files.length; i++) {
+            const rawAttached = attachedFiles[i];
+            if (rawAttached && rawAttached.blob) {
+              const publicStorageUrl = await window.WebCareSupabase.uploadAttachment(rawAttached, ticketId);
+              if (publicStorageUrl) {
+                newTicket.files[i].storageUrl = publicStorageUrl;
+              }
+            }
+          }
+          await window.WebCareSupabase.insertTicket(newTicket);
+        } catch (sbErr) {
+          console.warn('Supabase submit warning (fallback to local):', sbErr);
+        }
+      }
+
+      // 2. Always sync locally for instant responsiveness
+      try {
+        const stored = JSON.parse(localStorage.getItem('webcare_tickets') || '[]');
+        stored.unshift(newTicket);
+        localStorage.setItem('webcare_tickets', JSON.stringify(stored));
+        
+        // Broadcast to any open Admin tab immediately
+        if ('BroadcastChannel' in window) {
+          const channel = new BroadcastChannel('webcare_sync_channel');
+          channel.postMessage({ type: 'NEW_TICKET', ticket: newTicket });
+          channel.close();
+        }
+      } catch (err) {
+        console.error('Error saving ticket to storage:', err);
+      }
+
       // Restore button
       submitBtn.innerHTML = originalBtnHTML;
       submitBtn.disabled = false;
@@ -401,7 +425,7 @@ function initFormValidation() {
       attachedFiles = [];
       const previewList = document.getElementById('filePreviewList');
       if (previewList) previewList.innerHTML = '';
-    }, 500);
+    })();
   });
 
   if (closeModalBtn && modal) {

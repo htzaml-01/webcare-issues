@@ -49,6 +49,8 @@ function initAdminDashboard() {
   initVoiceAlertTest();
   initRealtimePolling();
   initLightboxHandlers();
+  initSupabaseIntegration();
+  initSupabaseSettingsModal();
 
   // Listen for storage events across tabs
   window.addEventListener('storage', (e) => {
@@ -99,6 +101,20 @@ function loadTicketsFromStorage() {
     console.error('Error loading tickets from storage:', err);
     tickets = [];
     knownTicketIds = new Set();
+  }
+
+  // If Supabase is configured, fetch latest from DB in background
+  if (window.WebCareSupabase && window.WebCareSupabase.isConfigured()) {
+    window.WebCareSupabase.fetchTickets().then(dbTickets => {
+      if (dbTickets && Array.isArray(dbTickets)) {
+        tickets = dbTickets;
+        knownTicketIds = new Set(tickets.map(t => t.id));
+        try {
+          localStorage.setItem('webcare_tickets', JSON.stringify(tickets));
+        } catch (e) {}
+        renderDashboard();
+      }
+    });
   }
 }
 
@@ -438,6 +454,11 @@ window.updateTicketStatus = function(ticketId, newStatus) {
     target.completedAt = new Date().toISOString();
   }
   saveTicketsToStorage();
+
+  // Sync to Supabase if configured
+  if (window.WebCareSupabase && window.WebCareSupabase.isConfigured()) {
+    window.WebCareSupabase.updateStatus(ticketId, newStatus);
+  }
   
   if (newStatus === 'done') {
     showToast(`Tiket ${ticketId} selesai & dipindahkan ke History`);
@@ -881,6 +902,11 @@ function initClearQueue() {
       tickets = [];
       localStorage.setItem('webcare_ticket_seq', '0');
       saveTicketsToStorage();
+
+      if (window.WebCareSupabase && window.WebCareSupabase.isConfigured()) {
+        window.WebCareSupabase.clearQueue();
+      }
+
       showToast('All tickets cleared and sequence reset to #00001');
     }
   });
@@ -992,4 +1018,218 @@ function initLightboxHandlers() {
       closeLightbox();
     }
   });
+}
+
+/* ==========================================================================
+   SUPABASE DATABASE & REALTIME SETTINGS INTEGRATION
+   ========================================================================== */
+function initSupabaseIntegration() {
+  updateSupabaseStatusIndicator();
+
+  if (window.WebCareSupabase && window.WebCareSupabase.isConfigured()) {
+    // 1. Initial background fetch
+    window.WebCareSupabase.fetchTickets().then(dbTickets => {
+      if (dbTickets && Array.isArray(dbTickets)) {
+        tickets = dbTickets;
+        knownTicketIds = new Set(tickets.map(t => t.id));
+        try {
+          localStorage.setItem('webcare_tickets', JSON.stringify(tickets));
+        } catch (e) {}
+        renderDashboard();
+      }
+    });
+
+    // 2. Subscribe to Realtime DB updates
+    window.WebCareSupabase.subscribe(
+      // On Insert (New Ticket)
+      (newTicket) => {
+        if (!knownTicketIds.has(newTicket.id)) {
+          tickets.unshift(newTicket);
+          knownTicketIds.add(newTicket.id);
+          try {
+            localStorage.setItem('webcare_tickets', JSON.stringify(tickets));
+          } catch (e) {}
+          renderDashboard();
+          playNewIssueVoiceNotification();
+          showToast(`Issue baru masuk: ${newTicket.id} (${newTicket.reporter})`);
+        }
+      },
+      // On Update (Status changed)
+      (updatedRow) => {
+        const found = tickets.find(t => t.id === updatedRow.id);
+        if (found) {
+          found.status = updatedRow.status;
+          found.completedAt = updatedRow.completed_at;
+          try {
+            localStorage.setItem('webcare_tickets', JSON.stringify(tickets));
+          } catch (e) {}
+          renderDashboard();
+          if (activeTicketForModal && activeTicketForModal.id === updatedRow.id) {
+            updateModalView(found);
+          }
+        }
+      },
+      // On Delete
+      (deletedRow) => {
+        tickets = tickets.filter(t => t.id !== deletedRow.id);
+        knownTicketIds.delete(deletedRow.id);
+        try {
+          localStorage.setItem('webcare_tickets', JSON.stringify(tickets));
+        } catch (e) {}
+        renderDashboard();
+      }
+    );
+  }
+}
+
+function updateSupabaseStatusIndicator() {
+  const statusText = document.getElementById('supabaseStatusText');
+  const banner = document.getElementById('supabaseConnectionBanner');
+  const bannerText = document.getElementById('supabaseBannerText');
+  const dot = document.getElementById('supabaseStatusIndicatorDot');
+
+  const isConfigured = window.WebCareSupabase && window.WebCareSupabase.isConfigured();
+
+  if (isConfigured) {
+    if (statusText) statusText.innerHTML = 'Supabase: <span style="color:#10b981; font-weight:700;">Connected</span>';
+    if (banner) {
+      banner.style.background = '#ecfdf5';
+      banner.style.color = '#047857';
+      banner.style.border = '1px solid #a7f3d0';
+    }
+    if (bannerText) bannerText.textContent = 'Status: Terhubung dengan Database Supabase (Realtime Sync Active)';
+    if (dot) dot.style.background = '#10b981';
+  } else {
+    if (statusText) statusText.innerHTML = 'Supabase Sync';
+    if (banner) {
+      banner.style.background = '#f8fafc';
+      banner.style.color = '#64748b';
+      banner.style.border = '1px solid #e2e8f0';
+    }
+    if (bannerText) bannerText.textContent = 'Status: Menggunakan LocalStorage (Belum terhubung ke Supabase)';
+    if (dot) dot.style.background = '#94a3b8';
+  }
+}
+
+function initSupabaseSettingsModal() {
+  const modal = document.getElementById('supabaseSettingsModal');
+  const openBtn = document.getElementById('supabaseSettingsBtn');
+  const closeBtn = document.getElementById('closeSupabaseModalBtn');
+  const urlInput = document.getElementById('supabaseUrlInput');
+  const keyInput = document.getElementById('supabaseKeyInput');
+  const saveBtn = document.getElementById('saveSupabaseBtn');
+  const testBtn = document.getElementById('testSupabaseBtn');
+  const disconnectBtn = document.getElementById('disconnectSupabaseBtn');
+  const migrateBtn = document.getElementById('migrateLocalToSupabaseBtn');
+
+  if (!modal) return;
+
+  const closeModal = () => modal.classList.remove('active');
+  const openModal = () => {
+    if (window.WebCareSupabase) {
+      const { url, anonKey } = window.WebCareSupabase.getCredentials();
+      if (urlInput) urlInput.value = url || '';
+      if (keyInput) keyInput.value = anonKey || '';
+    }
+    updateSupabaseStatusIndicator();
+    modal.classList.add('active');
+  };
+
+  if (openBtn) openBtn.addEventListener('click', openModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Save Credentials & Reconnect
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      const url = urlInput ? urlInput.value.trim() : '';
+      const key = keyInput ? keyInput.value.trim() : '';
+
+      if (!url || !key) {
+        alert('Mohon masukkan Project URL dan Anon Key Supabase Anda.');
+        return;
+      }
+
+      window.WebCareSupabase.setCredentials(url, key);
+      updateSupabaseStatusIndicator();
+      initSupabaseIntegration();
+      showToast('Konfigurasi Supabase berhasil disimpan!');
+      closeModal();
+    });
+  }
+
+  // Test Connection
+  if (testBtn) {
+    testBtn.addEventListener('click', async () => {
+      const url = urlInput ? urlInput.value.trim() : '';
+      const key = keyInput ? keyInput.value.trim() : '';
+
+      if (!url || !key) {
+        alert('Masukkan URL dan Key terlebih dahulu untuk melakukan test koneksi.');
+        return;
+      }
+
+      testBtn.textContent = 'Testing...';
+      testBtn.disabled = true;
+
+      try {
+        window.WebCareSupabase.setCredentials(url, key);
+        const data = await window.WebCareSupabase.fetchTickets();
+        if (data !== null) {
+          alert('Koneksi Berhasil! Database Supabase terhubung dengan sukses.');
+          updateSupabaseStatusIndicator();
+        } else {
+          alert('Koneksi Gagal: Pastikan table "tickets" sudah dibuat dengan menjalankan "supabase_schema.sql" di SQL Editor Supabase Anda.');
+        }
+      } catch (err) {
+        alert('Gagal menghubungkan ke Supabase: ' + err.message);
+      } finally {
+        testBtn.textContent = 'Test Connection';
+        testBtn.disabled = false;
+      }
+    });
+  }
+
+  // Disconnect & Reset to LocalStorage
+  if (disconnectBtn) {
+    disconnectBtn.addEventListener('click', () => {
+      if (confirm('Apakah Anda yakin ingin memutuskan koneksi Supabase dan kembali menggunakan LocalStorage?')) {
+        window.WebCareSupabase.clearCredentials();
+        if (urlInput) urlInput.value = '';
+        if (keyInput) keyInput.value = '';
+        updateSupabaseStatusIndicator();
+        showToast('Koneksi Supabase dinonaktifkan. Mode LocalStorage aktif.');
+      }
+    });
+  }
+
+  // Upload Local Tickets to Supabase
+  if (migrateBtn) {
+    migrateBtn.addEventListener('click', async () => {
+      if (!window.WebCareSupabase.isConfigured()) {
+        alert('Harap hubungkan ke Supabase terlebih dahulu.');
+        return;
+      }
+      if (tickets.length === 0) {
+        alert('Tidak ada tiket lokal untuk di-upload.');
+        return;
+      }
+
+      migrateBtn.textContent = 'Uploading...';
+      migrateBtn.disabled = true;
+
+      let count = 0;
+      for (const t of tickets) {
+        const ok = await window.WebCareSupabase.insertTicket(t);
+        if (ok) count++;
+      }
+
+      alert(`Berhasil mengunggah ${count} dari ${tickets.length} tiket ke Supabase.`);
+      migrateBtn.textContent = 'Upload Local Tickets to Supabase';
+      migrateBtn.disabled = false;
+      loadTicketsFromStorage();
+    });
+  }
 }

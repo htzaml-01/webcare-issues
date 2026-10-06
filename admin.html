@@ -28,6 +28,14 @@
       </div>
 
       <div class="topbar-actions">
+        <button id="supabaseSettingsBtn" class="reset-data-btn" title="Configure Supabase Database & Realtime Sync">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+          <span id="supabaseStatusText">Supabase Sync</span>
+        </button>
         <button id="testVoiceBtn" class="reset-data-btn" title="Test Voice Notification">
           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -426,6 +434,67 @@
     </div>
   </div>
 
+  <!-- SUPABASE DATABASE SETTINGS MODAL -->
+  <div class="admin-modal-backdrop" id="supabaseSettingsModal">
+    <div class="admin-modal-card" style="max-width: 520px;">
+      <div class="modal-card-header">
+        <div class="header-id-group">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0052ff" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+          <span style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: #111827;">Supabase Database & Realtime</span>
+        </div>
+        <button class="modal-close-btn" id="closeSupabaseModalBtn">&times;</button>
+      </div>
+
+      <div class="modal-card-body" style="gap: 14px;">
+        <div id="supabaseConnectionBanner" style="padding: 10px 14px; border-radius: 10px; font-size: 0.84rem; display: flex; align-items: center; gap: 8px;">
+          <span id="supabaseStatusIndicatorDot" style="width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; display: inline-block;"></span>
+          <span id="supabaseBannerText">Status: Checking connection...</span>
+        </div>
+
+        <div style="font-size: 0.84rem; color: #64748b; line-height: 1.45;">
+          Hubungkan database Supabase untuk sinkronisasi tiket secara <strong>Real-time</strong> antar device. Schema SQL tersedia di file <code>supabase_schema.sql</code>.
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.8rem; font-weight: 600; color: #1e293b;">Project URL</label>
+          <input type="text" id="supabaseUrlInput" placeholder="https://your-project.supabase.co" 
+                 style="width: 100%; padding: 10px 12px; font-size: 0.88rem; border: 1px solid #cbd5e1; border-radius: 10px; outline: none; font-family: monospace;">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.8rem; font-weight: 600; color: #1e293b;">Anon / Public API Key</label>
+          <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+                 style="width: 100%; padding: 10px 12px; font-size: 0.88rem; border: 1px solid #cbd5e1; border-radius: 10px; outline: none; font-family: monospace;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px;">
+          <button id="saveSupabaseBtn" style="background: #0052ff; color: #ffffff; border: none; padding: 10px 14px; font-size: 0.86rem; font-weight: 600; border-radius: 10px; cursor: pointer;">
+            Save & Connect
+          </button>
+          <button id="testSupabaseBtn" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 10px 14px; font-size: 0.86rem; font-weight: 600; border-radius: 10px; cursor: pointer;">
+            Test Connection
+          </button>
+        </div>
+
+        <div style="padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+          <button id="disconnectSupabaseBtn" style="background: none; border: none; color: #ef4444; font-size: 0.78rem; cursor: pointer; text-decoration: underline;">
+            Reset / Gunakan LocalStorage
+          </button>
+          <button id="migrateLocalToSupabaseBtn" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #0052ff; font-size: 0.78rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; cursor: pointer;">
+            Upload Local Tickets to Supabase
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase CDN & Config -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <script src="admin.js"></script>
 </body>
 
