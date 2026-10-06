@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Report an Issue — WebCare Support & Maintenance</title>
+  <meta name="description" content="Report a website issue, bug, or downtime. WebCare engineers will diagnose and resolve your website problems swiftly.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- TOP-RIGHT DIRECT ADMIN ACCESS LINK -->
+  <a href="admin.html" class="top-corner-admin-btn" title="Open Admin Operations Dashboard">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="0" ry="0"></rect>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+    </svg>
+    <span>Admin</span>
+  </a>
+
+  <!-- HERO & TOP NAVBAR CONTAINER (Rotated Wallpaper Background) -->
+  <div class="hero-wrapper">
+    <!-- Rotated Wallpaper Background -->
+    <div class="hero-bg-backdrop">
+      <img src="Asset/header-bg-rotated-270.jpg" alt="WebCare Background" class="hero-bg-rotated-img">
+    </div>
+
+    <!-- TOP NAVBAR (Far Top-Left Corner on Desktop, hidden on Mobile) -->
+    <header class="navbar-wrapper">
+      <a href="#" class="brand-logo-custom" aria-label="WebCare Home">
+        <img src="Asset/c7faccf5-fc56-487e-9e37-dab67f67e0f9.webp" alt="WebCare Logo" class="webcare-full-logo">
+      </a>
+    </header>
+
+    <!-- HERO HEADER TITLE -->
+    <div class="container hero-header-center">
+      <h1 class="hero-title-center">Report an Issue</h1>
+      <p class="hero-subtitle-center">
+        Found a bug or website error? We fix it fast.
+      </p>
+    </div>
+  </div>
+
+  <!-- MAIN BODY: CENTERED OVERLAPPING FLOATING FORM (SHARP SQUARE EDGES) -->
+  <main class="main-body-centered" id="contact">
+    <div class="container form-center-container">
+      
+      <!-- THE SHARP SQUARE GLASS ISSUE REPORT CARD -->
+      <div class="floating-glass-card-center" id="formCard">
+        
+        <!-- Top Notice Banner inside form -->
+        <div class="form-banner">
+          <div class="banner-icon-box">
+            <img src="Asset/44cf33f7-7fa1-4813-8788-08f5a16b0bd5.webp" alt="WebCare Icon" class="banner-custom-icon">
+          </div>
+          <p class="banner-text">
+            Write us a few words about your issue and we'll start diagnostic support within <strong>24 hours</strong>.
+          </p>
+        </div>
+
+        <!-- Issue Submission Form -->
+        <form id="projectContactForm" class="inquiry-form" novalidate>
+          
+          <!-- 2x2 Input Grid (Name, Email, WhatsApp, Website URL) -->
+          <div class="input-grid-2x2">
+            
+            <!-- Your Name -->
+            <div class="form-field" id="field-name">
+              <input type="text" id="userName" name="userName" class="clean-input" placeholder="Your name" required autocomplete="name">
+              <span class="field-error-msg">Please enter your name</span>
+            </div>
+
+            <!-- Your E-mail -->
+            <div class="form-field" id="field-email">
+              <input type="email" id="userEmail" name="userEmail" class="clean-input" placeholder="Your e-mail" required autocomplete="email">
+              <span class="field-error-msg">Please enter a valid email</span>
+            </div>
+
+            <!-- WhatsApp Phone Number with Country Code Selector -->
+            <div class="form-field" id="field-phone">
+              <div class="phone-input-group">
+                <select id="countryCode" name="countryCode" class="clean-select country-code-select" aria-label="Country Dialing Code">
+                  <option value="+62" selected>ID (+62)</option>
+                  <option value="+60">MY (+60)</option>
+                  <option value="+65">SG (+65)</option>
+                  <option value="+61">AU (+61)</option>
+                  <option value="+1">US (+1)</option>
+                  <option value="+44">UK (+44)</option>
+                  <option value="+81">JP (+81)</option>
+                  <option value="+82">KR (+82)</option>
+                  <option value="+86">CN (+86)</option>
+                  <option value="+966">SA (+966)</option>
+                  <option value="+971">AE (+971)</option>
+                  <option value="+49">DE (+49)</option>
+                  <option value="+33">FR (+33)</option>
+                  <option value="+31">NL (+31)</option>
+                  <option value="+91">IN (+91)</option>
+                  <option value="+63">PH (+63)</option>
+                  <option value="+66">TH (+66)</option>
+                  <option value="+84">VN (+84)</option>
+                </select>
+                <input type="tel" id="userPhone" name="userPhone" class="clean-input phone-number-input" placeholder="812-3456-7890" required autocomplete="tel">
+              </div>
+              <span class="field-error-msg">Please enter your WhatsApp number</span>
+            </div>
+
+            <!-- Website URL -->
+            <div class="form-field" id="field-company">
+              <input type="text" id="userCompany" name="userCompany" class="clean-input" placeholder="Website URL (e.g. example.com)" required autocomplete="url">
+              <span class="field-error-msg">Please enter your website URL</span>
+            </div>
+
+          </div>
+
+          <!-- Section Header -->
+          <div class="optional-label">Issue Details & Steps to Reproduce <span style="color:#ef4444;">*</span></div>
+
+          <!-- Project / Issue Details Textarea -->
+          <div class="form-field full-width" id="field-details">
+            <textarea id="projectDetails" name="projectDetails" class="clean-textarea" placeholder="Explain what happened, error messages, which page has the bug, or steps to reproduce..." rows="4" required></textarea>
+            <span class="field-error-msg">Please explain the issue details</span>
+          </div>
+
+          <!-- Drag and Drop Zone for Screenshots / Error Logs -->
+          <div class="dropzone-box" id="dropzone">
+            <input type="file" id="fileInput" name="projectFiles[]" multiple class="hidden-file-input">
+            <div class="dropzone-content">
+              <div class="dropzone-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0052ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </div>
+              <div class="dropzone-text">
+                <span class="drop-title">DROP SCREENSHOTS OR LOGS HERE</span>
+                <span class="drop-subtitle">or tap to choose from device</span>
+              </div>
+            </div>
+            <div class="file-preview-list" id="filePreviewList"></div>
+          </div>
+
+          <!-- Send Button (Solid Single Color Matching Header, Sharp Straight Border) -->
+          <button type="submit" class="submit-button" id="submitBtn">
+            <span class="btn-text">Submit Issue</span>
+          </button>
+
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- CLEAN FLAT FOOTER (Logo WebCare & Copyright) -->
+  <footer class="site-footer-minimal">
+    <div class="container footer-minimal-inner">
+      <a href="#" class="footer-minimal-logo" aria-label="WebCare Home">
+        <img src="Asset/c7faccf5-fc56-487e-9e37-dab67f67e0f9.webp" alt="WebCare Logo" class="webcare-footer-logo">
+      </a>
+      <div class="footer-divider-line"></div>
+      <p class="footer-copyright-text">
+        &copy; 2026 PT Webcare Digital Indonesia. Membangun Website Profesional untuk Bisnis Indonesia. &bull; <a href="admin.html" style="color: rgba(255,255,255,0.75); text-decoration: underline; margin-left: 4px;">Admin Portal</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- SUBMISSION CONFIRMATION MODAL -->
+  <div class="modal-backdrop" id="successModal">
+    <div class="glass-modal-card">
+      <div class="modal-check-icon">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <h3 class="modal-title">Issue Ticket Submitted!</h3>
+      <p class="modal-desc">
+        Your issue ticket has been received. Our support engineers will diagnose and reply within <strong>24 hours</strong>.
+      </p>
+      <div class="modal-summary" id="modalSummary"></div>
+      <button class="submit-button modal-btn" id="closeModalBtn">Close Window</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
