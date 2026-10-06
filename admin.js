@@ -8,7 +8,7 @@ let currentFilter = 'all';
 let currentPage = 1;
 const ITEMS_PER_PAGE = 5;
 let currentSearch = '';
-let selectedDate = getLocalDateStr(new Date());
+let selectedDate = null; // Default null: show all issues across all days
 let activeTicketForModal = null;
 let knownTicketIds = new Set();
 let isInitialLoad = true;
@@ -330,7 +330,7 @@ function renderIssuesList() {
   }
 
   if (filtered.length === 0) {
-    let dateLabel = 'this selected day';
+    let dateLabel = selectedDate ? 'this selected day' : 'semua riwayat';
     if (selectedDate) {
       try {
         const dParts = selectedDate.split('-');
@@ -343,23 +343,23 @@ function renderIssuesList() {
       }
     }
 
-    let emptyTitle = `No issues found for ${dateLabel}`;
+    let emptyTitle = selectedDate ? `No issues found for ${dateLabel}` : 'Tidak ada issue ditemukan';
     let emptyDesc = '';
     if (currentFilter === 'history' || currentFilter === 'done') {
-      emptyTitle = `Belum ada riwayat selesai untuk ${dateLabel}`;
+      emptyTitle = selectedDate ? `Belum ada riwayat selesai untuk ${dateLabel}` : 'Belum ada riwayat issue selesai';
       emptyDesc = 'Issue yang berstatus "Done" akan otomatis tersimpan di tab History ini.';
     } else if (currentFilter === 'pending') {
-      emptyTitle = `Tidak ada issue Pending untuk ${dateLabel}`;
+      emptyTitle = selectedDate ? `Tidak ada issue Pending untuk ${dateLabel}` : 'Tidak ada issue Pending saat ini';
       emptyDesc = 'Semua issue baru yang belum ditangani akan muncul di sini.';
     } else if (currentFilter === 'working') {
-      emptyTitle = `Tidak ada issue On Working untuk ${dateLabel}`;
+      emptyTitle = selectedDate ? `Tidak ada issue On Working untuk ${dateLabel}` : 'Tidak ada issue On Working saat ini';
       emptyDesc = 'Issue yang sedang dalam proses perbaikan akan muncul di sini.';
     } else if (currentFilter === 'all') {
-      emptyTitle = `Tidak ada issue untuk ${dateLabel}`;
-      emptyDesc = 'Belum ada tiket issue (Pending, On Working, atau Done) pada tanggal ini.';
+      emptyTitle = selectedDate ? `Tidak ada issue untuk ${dateLabel}` : 'Belum ada issue yang dilaporkan';
+      emptyDesc = 'Semua tiket kendala yang dilaporkan oleh klien akan muncul di sini.';
     } else {
-      emptyTitle = `Antrean issue aktif kosong untuk ${dateLabel}`;
-      emptyDesc = 'Tidak ada tiket pending atau on working pada tanggal ini. Tiket yang sudah selesai (Done) tersimpan di tab History.';
+      emptyTitle = selectedDate ? `Antrean issue aktif kosong untuk ${dateLabel}` : 'Antrean issue aktif kosong';
+      emptyDesc = 'Tidak ada tiket pending atau on working saat ini. Tiket yang sudah selesai (Done) tersimpan di tab History.';
     }
 
     container.innerHTML = `
@@ -688,16 +688,11 @@ function renderCalendarStrip() {
     days.push(d);
   }
 
-  // Check if selectedDate is valid; if not set, default to today
-  if (!selectedDate) {
-    selectedDate = getLocalDateStr(today);
-  }
-
   container.innerHTML = days.map(d => {
     const dateStr = getLocalDateStr(d);
     const dayShort = d.toLocaleDateString('en-US', { weekday: 'short' });
     const dayNum = d.getDate();
-    const isSelected = (dateStr === selectedDate);
+    const isSelected = (selectedDate && dateStr === selectedDate);
     const isToday = (dateStr === getLocalDateStr(today));
 
     // Check if tickets exist for this date
@@ -715,11 +710,23 @@ function renderCalendarStrip() {
     `;
   }).join('');
 
-  // Attach click listeners to day items
+  // Attach click listeners to day items (Supports click to filter and unclick to show all)
   const dayButtons = container.querySelectorAll('.calendar-day-item');
   dayButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const targetDate = btn.getAttribute('data-date');
+
+      // If clicked day is already active, unclick/toggle off to show ALL issues
+      if (selectedDate === targetDate) {
+        selectedDate = null;
+        currentPage = 1;
+        dayButtons.forEach(b => b.classList.remove('active'));
+        renderIssuesList();
+        showToast('Menampilkan semua issues (Semua Hari)');
+        return;
+      }
+
+      // Filter by the clicked day
       selectedDate = targetDate;
       currentPage = 1;
 
