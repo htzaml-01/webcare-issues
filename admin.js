@@ -397,7 +397,6 @@ function renderIssuesList() {
             <div class="issue-title-line">
               <span class="ticket-code">${ticket.id}</span>
               <span class="reporter-name">${escapeHtml(ticket.reporter)}</span>
-              ${ticket.status === 'done' ? '<span class="history-tag-pill">RESOLVED</span>' : ''}
             </div>
             <div class="issue-subline">
               <span class="subline-item time-ago">${formattedDate}</span>
