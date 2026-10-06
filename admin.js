@@ -9,6 +9,7 @@ let currentPage = 1;
 const ITEMS_PER_PAGE = 5;
 let currentSearch = '';
 let selectedDate = null; // Default null: show all issues across all days
+let calendarAnchorDate = new Date(); // Anchor for 7-day strip (defaults to today)
 let activeTicketForModal = null;
 let knownTicketIds = new Set();
 let isInitialLoad = true;
@@ -44,6 +45,7 @@ function initAdminDashboard() {
   loadTicketsFromStorage();
   updateGreetingHeader();
   renderCalendarStrip();
+  initCalendarPicker();
   initFilterPills();
   initSearch();
   initModalHandlers();
@@ -677,14 +679,16 @@ function renderCalendarStrip() {
   const container = document.getElementById('calendarStrip');
   if (!container) return;
 
+  const anchor = (calendarAnchorDate instanceof Date && !isNaN(calendarAnchorDate.getTime())) 
+    ? calendarAnchorDate 
+    : new Date();
   const today = new Date();
   const days = [];
 
-  // Generate 7 days ending with today (i=6 is 6 days ago, i=0 is today)
-  // e.g. if today is 7th, days will be 1st, 2nd, 3rd, 4th, 5th, 6th, 7th
+  // Generate 7 days ending with anchor date (e.g. if anchor is date 8: 2, 3, 4, 5, 6, 7, 8)
   for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
+    const d = new Date(anchor);
+    d.setDate(anchor.getDate() - i);
     days.push(d);
   }
 
@@ -743,6 +747,65 @@ function renderCalendarStrip() {
       }
     });
   });
+}
+
+/* ==========================================================================
+   CALENDAR DATE PICKER (CUSTOM ANCHOR DATE)
+   ========================================================================== */
+function initCalendarPicker() {
+  const dateInput = document.getElementById('calendarDateInput');
+  const resetBtn = document.getElementById('calendarResetTodayBtn');
+  const pickerLabel = document.getElementById('calendarPickerLabel');
+
+  if (dateInput) {
+    dateInput.addEventListener('change', (e) => {
+      const val = e.target.value; // YYYY-MM-DD
+      if (!val) return;
+
+      const [y, m, d] = val.split('-').map(Number);
+      calendarAnchorDate = new Date(y, m - 1, d);
+      selectedDate = val; // auto-select the chosen date
+      currentPage = 1;
+
+      if (resetBtn) resetBtn.style.display = 'inline-flex';
+      if (pickerLabel) {
+        const dObj = new Date(y, m - 1, d);
+        pickerLabel.textContent = dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+
+      renderCalendarStrip();
+      renderIssuesList();
+      showToast(`Rentang 7 hari diatur berakhiran ${val}`);
+    });
+
+    const parentLabel = dateInput.closest('.calendar-picker-btn');
+    if (parentLabel) {
+      parentLabel.addEventListener('click', (e) => {
+        if (e.target !== dateInput && typeof dateInput.showPicker === 'function') {
+          try {
+            dateInput.showPicker();
+          } catch(err) {
+            // fallback to native click
+          }
+        }
+      });
+    }
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      calendarAnchorDate = new Date();
+      selectedDate = null; // Show all issues
+      currentPage = 1;
+      if (dateInput) dateInput.value = '';
+      if (pickerLabel) pickerLabel.textContent = 'Pilih Tanggal';
+      resetBtn.style.display = 'none';
+
+      renderCalendarStrip();
+      renderIssuesList();
+      showToast('Kalender di-reset ke 7 hari ini & menampilkan semua issues');
+    });
+  }
 }
 
 /* ==========================================================================

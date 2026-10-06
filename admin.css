@@ -258,15 +258,93 @@ body {
    ========================================================================== */
 .calendar-strip-section {
   margin-bottom: 22px;
-  overflow-x: auto;
   padding-bottom: 4px;
+}
+
+.calendar-strip-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
 }
 
 .calendar-strip {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: max-content;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  flex: 1;
+}
+
+.calendar-picker-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.calendar-picker-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid var(--border-light, #cbd5e1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
+}
+
+.calendar-picker-btn:hover {
+  border-color: #0052ff;
+  color: #0052ff;
+  background: #f8fafc;
+}
+
+.calendar-picker-btn svg {
+  color: #0052ff;
+  flex-shrink: 0;
+}
+
+.hidden-date-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.calendar-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0052ff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.calendar-reset-btn:hover {
+  background: #dbeafe;
+  border-color: #0052ff;
 }
 
 .calendar-day-item {
