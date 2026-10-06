@@ -84,7 +84,7 @@ body {
 }
 
 .topbar-inner {
-  max-width: 1200px;
+  max-width: 1320px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -189,7 +189,8 @@ body {
 }
 
 .admin-container {
-  max-width: 1140px;
+  max-width: 1320px;
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -320,38 +321,45 @@ body {
   background: url('Asset/header-bg-rotated.jpg') center center / cover no-repeat;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 10px;
-  padding: 24px 28px;
+  padding: 26px 36px;
   margin-bottom: 26px;
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 18px rgba(0, 82, 255, 0.16);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .reminder-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 24px;
   position: relative;
   z-index: 2;
+  width: 100%;
+}
+
+.reminder-text {
+  flex: 1;
 }
 
 .reminder-heading {
   font-family: var(--font-heading);
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: #ffffff;
   letter-spacing: -0.01em;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   text-shadow: 0 2px 8px rgba(0, 20, 80, 0.35);
 }
 
 .reminder-desc {
   font-family: var(--font-ui);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.92);
   font-weight: 400;
-  max-width: 600px;
+  max-width: 780px;
   margin-bottom: 14px;
   text-shadow: 0 1px 4px rgba(0, 20, 80, 0.25);
 }
@@ -420,9 +428,10 @@ body {
    ========================================================================== */
 .dashboard-grid-layout {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: minmax(0, 1fr) 380px;
   gap: 26px;
   align-items: start;
+  width: 100%;
 }
 
 /* Common Card Style */
