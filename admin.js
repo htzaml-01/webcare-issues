@@ -38,6 +38,21 @@ function getTicketDateStr(ticket) {
   }
 }
 
+// Helper: Format Ticket Date & Time (e.g. Oct 6, 02:44 PM)
+function formatTicketDate(ticket) {
+  if (!ticket) return 'Recently';
+  const val = ticket.createdAt || ticket.date;
+  if (val) {
+    try {
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      }
+    } catch (e) {}
+  }
+  return ticket.timeStr || 'Recently';
+}
+
 function initAdminDashboard() {
   initAdminAuth();
   loadTicketsFromStorage();
@@ -367,11 +382,7 @@ function renderIssuesList() {
       ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>'
       : (ticket.status === 'working' ? '<span class="working-spinner-dot"></span>' : '<span class="pending-hollow-dot"></span>');
     const waLink = buildWhatsAppLink(ticket);
-    const webUrl = ticket.website ? formatWebsiteUrl(ticket.website) : '#';
-    const rawWeb = ticket.website || 'example.com';
-    const shortWeb = shortenDisplayUrl(rawWeb, 22);
-    const hasFiles = (ticket.files && ticket.files.length > 0) || (ticket.fileCount > 0);
-    const fileNum = (ticket.files ? ticket.files.length : ticket.fileCount) || 0;
+    const formattedDate = formatTicketDate(ticket);
 
     return `
       <div class="issue-item-card ${statusClass}" data-id="${ticket.id}">
@@ -389,17 +400,7 @@ function renderIssuesList() {
               ${ticket.status === 'done' ? '<span class="history-tag-pill">RESOLVED</span>' : ''}
             </div>
             <div class="issue-subline">
-              <a href="${webUrl}" target="_blank" rel="noopener noreferrer" class="website-url-link subline-item" onclick="event.stopPropagation()" title="Open ${escapeHtml(rawWeb)} in new tab">
-                <span class="url-text-clipped">${escapeHtml(shortWeb)}</span>
-                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; flex-shrink:0;">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                  <polyline points="15 3 21 3 21 9"></polyline>
-                  <line x1="10" y1="14" x2="21" y2="3"></line>
-                </svg>
-              </a>
-              ${ticket.phone ? `<span class="subline-item subline-wa" title="WA: ${escapeHtml(ticket.phone)}">WA: ${escapeHtml(ticket.phone)}</span>` : ''}
-              <span class="subline-item time-ago">${ticket.timeStr || 'Recently'}</span>
-              ${hasFiles ? `<span class="subline-item proof-count-badge">${fileNum} proof</span>` : ''}
+              <span class="subline-item time-ago">${formattedDate}</span>
             </div>
           </div>
         </div>
