@@ -5,8 +5,8 @@
 // 1. Your Supabase Project Credentials
 // Replace the values below with your actual Supabase URL & Anon Public Key:
 // Or set them dynamically via the Admin Settings modal in the dashboard!
-const SUPABASE_DEFAULT_URL = ''; // e.g. 'https://your-project.supabase.co'
-const SUPABASE_DEFAULT_ANON_KEY = ''; // e.g. 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+const SUPABASE_DEFAULT_URL = 'https://yaxehrysnvvzulswcvpp.supabase.co';
+const SUPABASE_DEFAULT_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheGVocnlzbnZ2enVsc3djdnBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNjUxMzAsImV4cCI6MjEwNjg0MTEzMH0.dFQW6ZEXUq82AKRdG2oDjuser_d9wj2ZPufMh8BRkN8';
 
 let supabaseClient = null;
 
