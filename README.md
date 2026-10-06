@@ -10,7 +10,7 @@ A modern, responsive, real-time client support and issue ticketing system built 
   - Form validation requiring all fields except file attachments.
   - Direct ticket generation and storage with instant sync.
 
-- **Admin Operations Dashboard (`admin.html`)**:
+- **Admin Operations Dashboard (`dashboard.html` / `/dashboard`)**:
   - Real-time queue sync via `localStorage` and `BroadcastChannel`.
   - Date filtering (past 7 days calendar selector with reactive issue counts).
   - Search by ticket ID, client name, website URL, or details.
@@ -23,7 +23,7 @@ A modern, responsive, real-time client support and issue ticketing system built 
 
 ## Setup & Local Development
 
-Open `index.html` (Client Portal) or `admin.html` (Admin Dashboard) in any modern web browser or serve locally:
+Open `index.html` (Client Portal) or `dashboard.html` (Admin Dashboard) in any modern web browser or serve locally:
 
 ```bash
 # Using Node.js http-server / serve (optional):
